@@ -1,0 +1,8 @@
+{
+  "name": "360 TV",
+  "description": "High-performance streaming application for Smart TVs (LG webOS, Samsung Tizen) with optimized spatial navigation and ES5 support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

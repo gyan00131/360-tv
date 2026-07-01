@@ -1,0 +1,106 @@
+/* Favourites page specific styles */
+
+.fav-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 48px;
+  background-color: var(--color-tv-bg);
+  overflow-y: auto;
+}
+
+.fav-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 80px;
+  padding: 0 16px;
+}
+
+.fav-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: bold;
+  transition: all var(--transition-standard);
+  outline: none;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.fav-filter-btn.active {
+  background-color: white;
+  color: black;
+  border-color: white;
+}
+
+.fav-filter-btn.focused {
+  background-color: white;
+  color: black;
+  border-color: white;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px var(--color-tv-accent), 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.fav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 32px;
+  padding: 0 16px 96px;
+}
+
+.fav-card {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all var(--transition-standard);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.fav-card.focused {
+  opacity: 1;
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 0 0 4px var(--color-tv-accent), 0 0 50px rgba(255, 255, 255, 0.1);
+}
+
+.fav-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fav-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-align: left;
+}
+
+.fav-card-title-big {
+  font-size: 48px;
+  font-weight: 950;
+  text-transform: uppercase;
+  font-style: italic;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  margin-bottom: 8px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.fav-card-subtitle {
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: bold;
+  letter-spacing: 0.3em;
+  opacity: 0.4;
+  text-transform: uppercase;
+}

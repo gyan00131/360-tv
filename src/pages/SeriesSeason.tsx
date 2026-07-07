@@ -1,20 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useHistory, useParams } from 'react-router-dom';
 import { Play } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFocusable } from '../lib/focus/FocusContext';
 import { Movie, Episode, Season } from '../types/common-interface';
+import { MOVIES, SERIES } from '../constants';
 import '../css/series-season.css';
 
-interface SeriesSeasonPageProps {
-  movie: Movie;
-  onBack: () => void;
-  onPlay: (episode?: Episode) => void;
+interface DetailParams {
+  id: string;
 }
 
-const SeriesSeasonPage: React.FC<SeriesSeasonPageProps> = ({ movie, onBack, onPlay }) => {
-  const [selectedSeason, setSelectedSeason] = useState<Season>(movie.seasons?.[0] || { id: 's1', title: 'Season 1', seasonNumber: 1, episodes: [] });
+const SeriesSeasonPage: React.FC = () => {
+  const history = useHistory();
+  const { id } = useParams<DetailParams>();
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
+
+  useEffect(() => {
+    // Try to find the movie in constants first
+    const foundMovie = [...MOVIES, ...SERIES].find(m => m.id === parseInt(id));
+    if (foundMovie) {
+      setMovie(foundMovie);
+      setSelectedSeason(foundMovie.seasons?.[0] || { id: 's1', title: 'Season 1', seasonNumber: 1, episodes: [] });
+    }
+  }, [id]);
+
   const { ref: playRef, isFocused: playFocused } = useFocusable('details-play');
   const { ref: backRef, isFocused: backFocused } = useFocusable('details-back');
+
+  const handleBack = () => {
+    history.goBack();
+  };
+
+  const handlePlay = (episode?: Episode) => {
+    if (movie) {
+      history.push(`/player/${movie.id}`);
+    }
+  };
+
+  if (!movie || !selectedSeason) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'var(--color-tv-bg)',
+        color: 'white'
+      }}>
+        <h1>Loading...</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="series-container">
@@ -52,7 +91,7 @@ const SeriesSeasonPage: React.FC<SeriesSeasonPageProps> = ({ movie, onBack, onPl
             <div className="hero-actions">
               <button 
                 ref={playRef as any}
-                onClick={() => onPlay()}
+                onClick={() => handlePlay()}
                 className={`btn-primary ${playFocused ? 'focused tv-focus-outline' : ''}`}
               >
                 <Play size={28} fill={playFocused ? "black" : "none"} />
@@ -61,7 +100,7 @@ const SeriesSeasonPage: React.FC<SeriesSeasonPageProps> = ({ movie, onBack, onPl
               
               <button 
                 ref={backRef as any}
-                onClick={onBack}
+                onClick={handleBack}
                 className={`btn-primary ${backFocused ? 'focused tv-focus-outline' : ''}`}
               >
                 <span>Back</span>
@@ -100,7 +139,7 @@ const SeriesSeasonPage: React.FC<SeriesSeasonPageProps> = ({ movie, onBack, onPl
                   <div
                     key={episode.id}
                     ref={ref as any}
-                    onClick={() => onPlay(episode)}
+                    onClick={() => handlePlay(episode)}
                     className={`episode-row ${isFocused ? 'focused tv-focus-outline' : ''}`}
                   >
                     <div className="ep-number">{episode.episodeNumber}</div>

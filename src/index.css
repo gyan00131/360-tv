@@ -64,11 +64,15 @@ button {
 
 /* Global Navigation Styles */
 .nav-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 112px;
   display: flex;
   align-items: center;
   padding: 0 48px;
-  background-color: var(--color-tv-bg);
+  background: linear-gradient(to bottom, rgba(5,5,5,0.95), transparent);
   z-index: 50;
 }
 

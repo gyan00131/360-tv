@@ -39,6 +39,13 @@ export const apiRequest = async <T>(path: string, options: ApiRequestOptions = {
   const headers = new Headers(options.headers ?? {});
   headers.set('Accept', 'application/json');
 
+  if (typeof window !== 'undefined') {
+    const authToken = window.localStorage.getItem('tv_auth_token');
+    if (authToken) {
+      headers.set('Authorization', `Bearer ${authToken}`);
+    }
+  }
+
   const requestBody = normalizeBody(options.body, headers);
   const response = await fetch(buildUrl(path, options.baseUrl), {
     ...options,

@@ -1,5 +1,8 @@
 export const APP_CONFIG = {
   baseUrl: 'https://dev.e360tv.com/api',
+  auth: {
+    requireLoginForPlayback: false,
+  },
   endpoints: {
     movies: '/v3/movie-list',
     tvShows: '/v3/tvshow-list',

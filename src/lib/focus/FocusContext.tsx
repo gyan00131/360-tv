@@ -5,142 +5,135 @@ interface FocusContextType {
   setFocusedId: (id: string | null) => void;
   register: (id: string, ref: React.RefObject<HTMLElement>, metadata?: any) => void;
   unregister: (id: string) => void;
+  moveFocus: (direction: 'up' | 'down' | 'left' | 'right') => void;
+}
+
+interface FocusEntry {
+  ref: React.RefObject<HTMLElement>;
+  metadata?: any;
 }
 
 const FocusContext = createContext<FocusContextType | undefined>(undefined);
 
+
+
 export const FocusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [focusedId, setFocusedId] = useState<string | null>(null);
-  const elements = useRef<Map<string, { ref: React.RefObject<HTMLElement>; metadata?: any }>>(new Map());
+  const elements = useRef<Map<string, FocusEntry>>(new Map());
+  const navLockRef = useRef(false);
+  const hasFocusRef = useRef(false);
 
   const register = useCallback((id: string, ref: React.RefObject<HTMLElement>, metadata?: any) => {
     elements.current.set(id, { ref, metadata });
-    if (!focusedId) setFocusedId(id);
-  }, [focusedId]);
+    if (!hasFocusRef.current) {
+      hasFocusRef.current = true;
+      setFocusedId(id);
+    }
+  }, []);
 
   const unregister = useCallback((id: string) => {
     elements.current.delete(id);
+    setFocusedId(prev => {
+      if (prev === id) {
+        const next = Array.from(elements.current.keys())[0] ?? null;
+        if (!next) hasFocusRef.current = false;
+        return next;
+      }
+      return prev;
+    });
   }, []);
 
-  useEffect(() => {
-    // Ensure focus is never lost
-    if (!focusedId && elements.current.size > 0) {
-      setFocusedId(Array.from(elements.current.keys())[0]);
-    }
-    
-    const interval = setInterval(() => {
-      if (focusedId && !elements.current.has(focusedId)) {
-        if (elements.current.size > 0) {
-          setFocusedId(Array.from(elements.current.keys())[0]);
-        } else {
-          setFocusedId(null);
-        }
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [focusedId]);
+  const getFocusableEntries = () => Array.from(elements.current.entries()).filter(([, entry]) => Boolean(entry.ref.current));
 
   const moveFocus = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
-    if (!focusedId) return;
+    if (!focusedId || navLockRef.current) return;
 
-    const currentElem = elements.current.get(focusedId);
-    if (!currentElem?.ref.current) return;
+    const currentEntry = elements.current.get(focusedId);
+    if (!currentEntry?.ref.current) return;
 
-    // Special logic for Top Menu right end
-    if (direction === 'right' && (focusedId as string).startsWith('nav-')) {
-       // Check if this is the last item in the nav group
-       const navElements = Array.from(elements.current.keys())
-         .filter(id => (id as string).startsWith('nav-'))
-         .sort(); // Assuming alphabetical or predictable order if possible, but let's be more robust
-       const isLastNav = focusedId === 'nav-search'; // Hardcoded for this specific app's last nav item
-       if (isLastNav) return; 
-    }
+    navLockRef.current = true;
+    setTimeout(() => {
+      navLockRef.current = false;
+    }, 300);
 
-    // Special logic: Down from any Top Nav item -> Go to Banner
-    if (direction === 'down' && (focusedId as string).startsWith('nav-')) {
-       if (elements.current.has('banner-play')) {
-         setFocusedId('banner-play');
-         return;
-       }
-    }
+    const currentRect = currentEntry.ref.current.getBoundingClientRect();
+    const currentCenterY = currentRect.top + currentRect.height / 2;
+    const currentCenterX = currentRect.left + currentRect.width / 2;
+    const ROW_THRESHOLD = 20;
 
-    const currentRect = currentElem.ref.current.getBoundingClientRect();
-    const currentCenter = {
-      x: currentRect.left + currentRect.width / 2,
-      y: currentRect.top + currentRect.height / 2
-    };
+    const candidates = getFocusableEntries()
+      .filter(([id]) => id !== focusedId)
+      .map(([id, entry]) => {
+        const rect = entry.ref.current!.getBoundingClientRect();
+        return { id, centerX: rect.left + rect.width / 2, centerY: rect.top + rect.height / 2 };
+      });
 
-    let bestMatch: string | null = null;
-    let minScore = Infinity;
+    if (candidates.length === 0) return;
 
-    elements.current.forEach((value, id) => {
-      if (id === focusedId) return;
-      if (!value.ref.current) return;
+    let nextId: string | null = null;
 
-      const targetRect = value.ref.current.getBoundingClientRect();
-      const targetCenter = {
-        x: targetRect.left + targetRect.width / 2,
-        y: targetRect.top + targetRect.height / 2
-      };
-
-      // Check if target is in the correct directional half-plane
-      let isInDirection = false;
-      const threshold = 10; // Tolerance for alignment
-
-      if (direction === 'left' && targetRect.right <= currentRect.left + threshold) {
-        isInDirection = true;
-      } else if (direction === 'right' && targetRect.left >= currentRect.right - threshold) {
-        isInDirection = true;
-      } else if (direction === 'up' && targetRect.bottom <= currentRect.top + threshold) {
-        isInDirection = true;
-      } else if (direction === 'down' && targetRect.top >= currentRect.bottom - threshold) {
-        isInDirection = true;
-      }
-
-      if (!isInDirection) return;
-
-      // Distance and alignment calculation
-      const dx = Math.abs(targetCenter.x - currentCenter.x);
-      const dy = Math.abs(targetCenter.y - currentCenter.y);
-      
-      let score = 0;
-      if (direction === 'left' || direction === 'right') {
-        // Favor targets that are closer horizontally and better aligned vertically
-        score = dx + (dy * 3); 
+    if (direction === 'left' || direction === 'right') {
+      const sameRow = candidates.filter(c => Math.abs(c.centerY - currentCenterY) < ROW_THRESHOLD);
+      if (direction === 'right') {
+        const right = sameRow.filter(c => c.centerX > currentCenterX).sort((a, b) => a.centerX - b.centerX);
+        nextId = right[0]?.id ?? sameRow.sort((a, b) => a.centerX - b.centerX)[0]?.id ?? null;
       } else {
-        // Favor targets that are closer vertically and better aligned horizontally
-        score = dy + (dx * 3);
+        const left = sameRow.filter(c => c.centerX < currentCenterX).sort((a, b) => b.centerX - a.centerX);
+        nextId = left[0]?.id ?? sameRow.sort((a, b) => b.centerX - a.centerX)[0]?.id ?? null;
       }
-
-      if (score < minScore) {
-        minScore = score;
-        bestMatch = id;
+    } else {
+      if (direction === 'down') {
+        const below = candidates.filter(c => c.centerY > currentCenterY + ROW_THRESHOLD);
+        const pool = below.length > 0 ? below : candidates;
+        nextId = pool.sort((a, b) => {
+          const dy = below.length > 0 ? a.centerY - b.centerY : a.centerY - b.centerY;
+          if (Math.abs(dy) > ROW_THRESHOLD) return dy;
+          return Math.abs(a.centerX - currentCenterX) - Math.abs(b.centerX - currentCenterX);
+        })[0]?.id ?? null;
+      } else {
+        const above = candidates.filter(c => c.centerY < currentCenterY - ROW_THRESHOLD);
+        const pool = above.length > 0 ? above : candidates;
+        nextId = pool.sort((a, b) => {
+          const dy = above.length > 0 ? b.centerY - a.centerY : b.centerY - a.centerY;
+          if (Math.abs(dy) > ROW_THRESHOLD) return dy;
+          return Math.abs(a.centerX - currentCenterX) - Math.abs(b.centerX - currentCenterX);
+        })[0]?.id ?? null;
       }
-    });
+    }
 
-    if (bestMatch) {
-      setFocusedId(bestMatch);
-      const nextElem = elements.current.get(bestMatch);
+    if (nextId) {
+      setFocusedId(nextId);
+      const nextElem = elements.current.get(nextId);
       nextElem?.ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
   }, [focusedId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Backspace' || e.key === 'Escape') {
+        e.preventDefault();
+        return;
+      }
+
       switch (e.key) {
         case 'ArrowUp':
+          e.preventDefault();
           moveFocus('up');
           break;
         case 'ArrowDown':
+          e.preventDefault();
           moveFocus('down');
           break;
         case 'ArrowLeft':
+          e.preventDefault();
           moveFocus('left');
           break;
         case 'ArrowRight':
+          e.preventDefault();
           moveFocus('right');
           break;
         case 'Enter':
+          e.preventDefault();
           if (focusedId) {
             const current = elements.current.get(focusedId);
             current?.ref.current?.click();
@@ -150,23 +143,13 @@ export const FocusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     window.addEventListener('keydown', handleKeyDown);
-
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY > 0) moveFocus('down');
-      if (e.deltaY < 0) moveFocus('up');
-      if (e.deltaX > 0) moveFocus('right');
-      if (e.deltaX < 0) moveFocus('left');
-    };
-
-    window.addEventListener('wheel', handleWheel);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('wheel', handleWheel);
     };
   }, [focusedId, moveFocus]);
 
   return (
-    <FocusContext.Provider value={{ focusedId, setFocusedId, register, unregister }}>
+    <FocusContext.Provider value={{ focusedId, setFocusedId, register, unregister, moveFocus }}>
       {children}
     </FocusContext.Provider>
   );
@@ -182,10 +165,13 @@ export const useFocusable = (id: string, metadata?: any) => {
   const { focusedId, setFocusedId, register, unregister } = useFocus();
   const ref = useRef<HTMLElement>(null);
 
+  const metadataRef = useRef(metadata);
+  metadataRef.current = metadata;
+
   useEffect(() => {
-    register(id, ref, metadata);
+    register(id, ref, metadataRef.current);
     return () => unregister(id);
-  }, [id, register, unregister, metadata]);
+  }, [id, register, unregister]);
 
   const isFocused = focusedId === id;
 

@@ -1,5 +1,11 @@
 /* Common page placeholder styles */
 
+.page-with-header {
+  padding-top: 112px;
+  height: 100%;
+  overflow-y: auto;
+}
+
 .placeholder-container {
   flex: 1;
   display: flex;

@@ -4,7 +4,7 @@
   flex: 1;
   display: flex;
   gap: 48px;
-  padding: 48px;
+  padding: 112px 48px 48px;
   background-color: var(--color-tv-bg);
   color: white;
 }

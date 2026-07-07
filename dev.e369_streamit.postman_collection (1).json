@@ -1,0 +1,631 @@
+{
+	"info": {
+		"_postman_id": "6d9a0cd9-0fe9-448a-91f6-06beeddb0b66",
+		"name": "dev.e369_streamit",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "https://dev.e360tv.com/api/v3/tvshow-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v3/tvshow-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/movie-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v3/movie-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/get-search-data?search=sara",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dev.e360tv.com/api/v3/get-search-data?search=sara",
+					"protocol": "https",
+					"host": [
+						"dev",
+						"e360tv",
+						"com"
+					],
+					"path": [
+						"api",
+						"v3",
+						"get-search-data"
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": "sara"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/get-rating",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/get-rating"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/genre-content-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/genre-content-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/tvshow-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v3/tvshow-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/episode-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/episode-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/livetv-category-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/livetv-category-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/livetv-dashboard",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/livetv-dashboard"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/channel-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/channel-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/video-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/video-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "admin@streamit.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://dev.e360tv.com/api/login"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v2/dashboard-detail-data",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v2/dashboard-detail-data"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/tvshow-details?tvshow_id=334",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dev.e360tv.com/api/tvshow-details?tvshow_id=334",
+					"protocol": "https",
+					"host": [
+						"dev",
+						"e360tv",
+						"com"
+					],
+					"path": [
+						"api",
+						"tvshow-details"
+					],
+					"query": [
+						{
+							"key": "tvshow_id",
+							"value": "334"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/livetv-dashboard",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/livetv-dashboard"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/channel-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v3/channel-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/dashboard-detail-data",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v3/dashboard-detail-data"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/cast-details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v3/cast-details"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/network-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v3/network-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/tvshow-list?networkId=26",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dev.e360tv.com/api/v3/tvshow-list?networkId=26",
+					"protocol": "https",
+					"host": [
+						"dev",
+						"e360tv",
+						"com"
+					],
+					"path": [
+						"api",
+						"v3",
+						"tvshow-list"
+					],
+					"query": [
+						{
+							"key": "networkId",
+							"value": "26"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/livetv-details?channel_id=228",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dev.e360tv.com/api/v3/livetv-details?channel_id=228",
+					"protocol": "https",
+					"host": [
+						"dev",
+						"e360tv",
+						"com"
+					],
+					"path": [
+						"api",
+						"v3",
+						"livetv-details"
+					],
+					"query": [
+						{
+							"key": "channel_id",
+							"value": "228"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v2/pay-per-view-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/v2/pay-per-view-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/save-payment-pay-per-view",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n   \"user_id\":1 ,\r\n   \"movie_id\":14326,\r\n   \"type\":\"episode\",\r\n   \"price\":3.99\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://dev.e360tv.com/api/save-payment-pay-per-view"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/save-subscription-details",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://dev.e360tv.com/api/save-subscription-details"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "ratneshk500@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "Ratnesh@123",
+							"type": "text"
+						}
+					]
+				},
+				"url": "https://dev.e360tv.com/api/login"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/check-episode-purchase?episode_id=14328&user_id=12",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dev.e360tv.com/api/check-episode-purchase?episode_id=14328&user_id=12",
+					"protocol": "https",
+					"host": [
+						"dev",
+						"e360tv",
+						"com"
+					],
+					"path": [
+						"api",
+						"check-episode-purchase"
+					],
+					"query": [
+						{
+							"key": "episode_id",
+							"value": "14328"
+						},
+						{
+							"key": "user_id",
+							"value": "12"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/ppv/movies",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/ppv/movies"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/ppv/videos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/ppv/videos"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/ppv/episodes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/ppv/episodes"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/movies-pay-per-view",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/movies-pay-per-view"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/videos-pay-per-view",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/videos-pay-per-view"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/banners",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/banners"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/continuewatch-list?user_id=15",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dev.e360tv.com/api/continuewatch-list?user_id=15",
+					"protocol": "https",
+					"host": [
+						"dev",
+						"e360tv",
+						"com"
+					],
+					"path": [
+						"api",
+						"continuewatch-list"
+					],
+					"query": [
+						{
+							"key": "user_id",
+							"value": "15"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/watch-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://dev.e360tv.com/api/watch-list"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/save-watchlist",
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": {
+						"value": "",
+						"key": ""
+					}
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 37|LNxNM0mI26xBEA8odBjfKrAc13rytzeCVAOWsUZN8f0d8825",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "profile_id",
+							"value": "15",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "entertainment_id",
+							"value": "94",
+							"type": "text"
+						},
+						{
+							"key": "user_id",
+							"value": "15",
+							"type": "text"
+						},
+						{
+							"key": "type",
+							"value": "video",
+							"type": "text"
+						},
+						{
+							"key": "",
+							"value": "",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://dev.e360tv.com/api/save-watchlist"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/delete-watchlist",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 37|LNxNM0mI26xBEA8odBjfKrAc13rytzeCVAOWsUZN8f0d8825",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "type",
+							"value": "video",
+							"type": "text"
+						},
+						{
+							"key": "user_id",
+							"value": "15",
+							"type": "text"
+						},
+						{
+							"key": "id",
+							"value": "13",
+							"type": "text"
+						},
+						{
+							"key": "profile_id",
+							"value": "15",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": "https://dev.e360tv.com/api/delete-watchlist"
+			},
+			"response": []
+		},
+		{
+			"name": "https://dev.e360tv.com/api/v3/watch-list",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 37|LNxNM0mI26xBEA8odBjfKrAc13rytzeCVAOWsUZN8f0d8825",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "type",
+							"value": "video",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "https://dev.e360tv.com/api/v3/watch-list",
+					"protocol": "https",
+					"host": [
+						"dev",
+						"e360tv",
+						"com"
+					],
+					"path": [
+						"api",
+						"v3",
+						"watch-list"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "video",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -6,6 +6,11 @@ const ProfilePage: React.FC = () => {
   const { ref: logoutRef, isFocused: logoutFocused } = useFocusable('profile-logout');
   const { ref: switchRef, isFocused: switchFocused } = useFocusable('profile-switch');
 
+  const handleLogout = () => {
+    localStorage.removeItem('tv_auth_token');
+    window.location.reload();
+  };
+
   return (
     <div className="profile-container">
       <div className="profile-header">
@@ -43,6 +48,7 @@ const ProfilePage: React.FC = () => {
         </button>
         <button 
           ref={logoutRef as any}
+          onClick={handleLogout}
           className={`btn-danger ${logoutFocused ? 'focused tv-focus-outline' : ''}`}
         >
           Logout Session

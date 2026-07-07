@@ -63,7 +63,17 @@ export const fetchSearchResults = async (query: string): Promise<Movie[]> => {
 
 export const fetchGenres = async () => requestJson<any>(APP_CONFIG.endpoints.genres);
 export const fetchRating = async () => requestJson<any>(APP_CONFIG.endpoints.rating);
-export const fetchBanners = async () => requestJson<any>(APP_CONFIG.endpoints.banners);
+export const fetchBanners = async () => {
+  const payload = await requestJson<any>(APP_CONFIG.endpoints.banners);
+  const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+
+  return items.map((item: any) => ({
+    id: String(item?.id ?? `banner-${Math.random().toString(36).slice(2, 8)}`),
+    title: item?.title || item?.name || 'Featured',
+    description: stripHtml(item?.description || item?.short_desc || item?.details || 'No description available.'),
+    image: item?.image || item?.poster_image || item?.thumbnail_url || item?.banner_image || FALLBACK_IMAGE,
+  }));
+};
 export const fetchDashboardDetail = async () => requestJson<any>(APP_CONFIG.endpoints.dashboardDetail);
 export const fetchLiveTvCategories = async () => requestJson<any>(APP_CONFIG.endpoints.liveTvCategories);
 export const fetchLiveTvDashboard = async () => requestJson<any>(APP_CONFIG.endpoints.liveTvDashboard);

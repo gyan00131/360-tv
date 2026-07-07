@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Play } from 'lucide-react';
-import { useFocusable } from '../lib/focus/FocusContext';
+import { useFocusable, useFocus } from '../lib/focus/FocusContext';
 import { MOVIES, SERIES } from '../constants';
 import { Movie } from '../types/common-interface';
 import { fetchBanners, fetchMovies, fetchTvShows } from '../lib/api';
@@ -23,7 +23,24 @@ const FALLBACK_BANNERS = [
   },
 ];
 
-// Thumbnail – groupId is the shelf’s categoryId
+// Focusable Dot component
+const Dot: React.FC<{
+  index: number;
+  isActive: boolean;
+  onClick: () => void;
+}> = ({ index, isActive, onClick }) => {
+  const { ref, isFocused } = useFocusable(`banner-dot-${index}`);
+
+  return (
+    <div
+      ref={ref as any}
+      className={`banner-dot ${isActive ? 'active' : ''} ${isFocused ? 'focused' : ''}`}
+      onClick={onClick}
+    />
+  );
+};
+
+// Thumbnail
 interface ThumbnailProps {
   movie: Movie;
   categoryId: string;
@@ -55,7 +72,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ movie, categoryId, onClick, isVer
   );
 };
 
-// Shelf – passes categoryId to each thumbnail
+// Shelf
 interface ShelfProps {
   title: string;
   categoryId: string;
@@ -85,12 +102,14 @@ const Shelf: React.FC<ShelfProps> = ({ title, categoryId, onSelect, items = [], 
   );
 };
 
-// Banner – play button and dots are focusable (but dots use a hook inside a loop – fix below)
+// Banner – with carousel navigation via Left/Right arrows
 const Banner: React.FC = () => {
   const history = useHistory();
+  const { focusedId, setFocusedId } = useFocus();
   const { ref: playRef, isFocused: playFocused } = useFocusable('banner-play');
   const [bannerSlides, setBannerSlides] = useState(FALLBACK_BANNERS);
   const [activeSlide, setActiveSlide] = useState(0);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   const handlePlay = () => {
     if (bannerSlides[activeSlide]) {
@@ -98,6 +117,7 @@ const Banner: React.FC = () => {
     }
   };
 
+  // Fetch real banners
   useEffect(() => {
     fetchBanners()
       .then((data) => {
@@ -108,6 +128,7 @@ const Banner: React.FC = () => {
       .catch(() => console.warn('Banner API failed, using fallback'));
   }, []);
 
+  // Auto‑rotate slides
   useEffect(() => {
     if (bannerSlides.length <= 1) return;
     const interval = window.setInterval(() => {
@@ -116,10 +137,38 @@ const Banner: React.FC = () => {
     return () => window.clearInterval(interval);
   }, [bannerSlides.length]);
 
+  // Scroll banner into view when a banner element is focused
+  useEffect(() => {
+    if (focusedId === 'banner-play' || focusedId?.startsWith('banner-dot-')) {
+      bannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [focusedId]);
+
+  // Intercept left/right keys when focus is on banner elements to change slide
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isBannerFocused = focusedId === 'banner-play' || focusedId?.startsWith('banner-dot-');
+      if (!isBannerFocused) return;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveSlide((prev) => (prev + 1) % bannerSlides.length);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusedId, bannerSlides.length]);
+
   const slide = bannerSlides[activeSlide] || FALLBACK_BANNERS[0];
 
   return (
-    <div className="home-banner">
+    <div className="home-banner" ref={bannerRef}>
       <img src={slide.image} className="banner-image" alt={slide.title} />
       <div className="banner-overlay-top" />
       <div className="banner-overlay-left" />
@@ -145,19 +194,14 @@ const Banner: React.FC = () => {
 
         {bannerSlides.length > 1 && (
           <div className="banner-dots">
-            {bannerSlides.map((_, i) => {
-              // Using useFocusable inside map is forbidden – we'll move dots to a separate component
-              // For now, we'll just render non-focusable dots (clickable via mouse only)
-              // To make them focusable, we need to extract into a Dot component.
-              // Simplified: remove focus for dots to avoid breaking the rule.
-              return (
-                <div
-                  key={i}
-                  className={`banner-dot ${i === activeSlide ? 'active' : ''}`}
-                  onClick={() => setActiveSlide(i)}
-                />
-              );
-            })}
+            {bannerSlides.map((_, i) => (
+              <Dot
+                key={i}
+                index={i}
+                isActive={i === activeSlide}
+                onClick={() => setActiveSlide(i)}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -165,7 +209,7 @@ const Banner: React.FC = () => {
   );
 };
 
-// HomePage – no TopMenu
+// HomePage
 const HomePage: React.FC = () => {
   const history = useHistory();
   const [movies, setMovies] = useState(MOVIES.slice(0, 6));

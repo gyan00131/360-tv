@@ -80,6 +80,17 @@ export const fetchLiveTvDashboard = async () => requestJson<any>(APP_CONFIG.endp
 export const fetchChannels = async () => requestJson<any>(APP_CONFIG.endpoints.channels);
 export const fetchVideos = async () => requestJson<any>(APP_CONFIG.endpoints.videos);
 
+export const fetchTvShowDetail = async (id: string): Promise<Movie | null> => {
+  try {
+    const payload = await requestJson<any>(`/tvshow-details?tvshow_id=${id}`);
+    const item = payload?.data ?? payload;
+    if (!item?.id) return null;
+    return normalizeMediaItem(item, 'TV Show');
+  } catch {
+    return null;
+  }
+};
+
 export const login = async (email: string, password: string) =>
   post<any>(APP_CONFIG.endpoints.login, new URLSearchParams({ email, password }).toString(), {
     headers: {

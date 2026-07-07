@@ -10,12 +10,10 @@ interface FocusContextType {
 
 interface FocusEntry {
   ref: React.RefObject<HTMLElement>;
-  metadata?: any;
+  metadata?: any; // now includes groupId
 }
 
 const FocusContext = createContext<FocusContextType | undefined>(undefined);
-
-
 
 export const FocusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [focusedId, setFocusedId] = useState<string | null>(null);
@@ -61,12 +59,23 @@ export const FocusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const currentCenterX = currentRect.left + currentRect.width / 2;
     const ROW_THRESHOLD = 20;
 
-    const candidates = getFocusableEntries()
+    // Get all focusable candidates
+    let candidates = getFocusableEntries()
       .filter(([id]) => id !== focusedId)
-      .map(([id, entry]) => {
-        const rect = entry.ref.current!.getBoundingClientRect();
-        return { id, centerX: rect.left + rect.width / 2, centerY: rect.top + rect.height / 2 };
-      });
+      .map(([id, entry]) => ({
+        id,
+        centerX: entry.ref.current!.getBoundingClientRect().left + entry.ref.current!.getBoundingClientRect().width / 2,
+        centerY: entry.ref.current!.getBoundingClientRect().top + entry.ref.current!.getBoundingClientRect().height / 2,
+        metadata: entry.metadata,
+      }));
+
+    // For left/right, restrict to same group (shelf)
+    if (direction === 'left' || direction === 'right') {
+      const currentGroup = currentEntry.metadata?.groupId;
+      if (currentGroup !== undefined) {
+        candidates = candidates.filter(c => c.metadata?.groupId === currentGroup);
+      }
+    }
 
     if (candidates.length === 0) return;
 
@@ -82,6 +91,7 @@ export const FocusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         nextId = left[0]?.id ?? sameRow.sort((a, b) => b.centerX - a.centerX)[0]?.id ?? null;
       }
     } else {
+      // Up / Down – allow moving across groups
       if (direction === 'down') {
         const below = candidates.filter(c => c.centerY > currentCenterY + ROW_THRESHOLD);
         const pool = below.length > 0 ? below : candidates;

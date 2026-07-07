@@ -217,3 +217,128 @@
   margin-bottom: 6px;
   font-size: 14px;
 }
+
+
+/* Top Menu */
+.top-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  height: 72px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.6));
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.menu-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+
+.logo-icon {
+  color: var(--color-tv-accent, #e50914);
+  font-size: 28px;
+}
+
+.logo-text {
+  color: white;
+}
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.nav-link {
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: white;
+}
+
+.nav-link.active {
+  font-weight: 600;
+}
+
+.menu-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.08);
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+}
+
+.search-box input {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  width: 160px;
+}
+
+.search-box input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+.user-avatar {
+  cursor: pointer;
+  color: rgba(255,255,255,0.7);
+  transition: color 0.2s;
+}
+
+.user-avatar:hover {
+  color: white;
+}
+
+/* Adjust banner to account for fixed menu */
+.home-banner {
+  margin-top: 72px; /* push down below menu */
+  height: calc(100vh - 72px); /* take remaining viewport height */
+}
+
+/* Top menu focus */
+.top-menu .focused {
+  outline: 2px solid white;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Banner dot focus */
+.banner-dot.focused {
+  outline: 2px solid white;
+  outline-offset: 2px;
+  transform: scale(1.2);
+}

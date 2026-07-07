@@ -65,16 +65,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
       resetControlsTimeout();
 
       if (e.key === 'Backspace' || e.key === 'Escape') {
+        e.stopPropagation();
+        e.preventDefault();
         if (showSettings) {
-          if (settingsView !== 'root') {
-            setSettingsView('root');
-          } else {
-            setShowSettings(false);
-          }
-          e.stopPropagation();
-          e.preventDefault();
-          return;
+          if (settingsView !== 'root') setSettingsView('root');
+          else setShowSettings(false);
+        } else {
+          onBack();
         }
+        return;
       }
 
       if (!showSettings) {
@@ -96,7 +95,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
       window.removeEventListener('keydown', handleKeys, true);
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     };
-  }, [showSettings, settingsView, settingsFocused, backFocused, playPauseFocused, rewindFocused, forwardFocused]);
+  }, [showSettings, settingsView, settingsFocused, backFocused, playPauseFocused, rewindFocused, forwardFocused, onBack]);
 
   useEffect(() => {
     const initPlayer = async () => {

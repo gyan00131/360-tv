@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { useFocusable } from '../lib/focus/FocusContext';
 import { Movie, Episode, Season } from '../types/common-interface';
 import { MOVIES, SERIES } from '../constants';
+import { fetchTvShowDetail } from '../lib/api';
 import '../css/series-season.css';
 
 interface DetailParams {
@@ -18,12 +19,18 @@ const SeriesSeasonPage: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
 
   useEffect(() => {
-    // Try to find the movie in constants first
-    const foundMovie = [...MOVIES, ...SERIES].find(m => m.id === parseInt(id));
-    if (foundMovie) {
-      setMovie(foundMovie);
-      setSelectedSeason(foundMovie.seasons?.[0] || { id: 's1', title: 'Season 1', seasonNumber: 1, episodes: [] });
+    const local = [...MOVIES, ...SERIES].find(m => m.id === id);
+    if (local) {
+      setMovie(local);
+      setSelectedSeason(local.seasons?.[0] || { id: 's1', title: 'Season 1', seasonNumber: 1, episodes: [] });
+      return;
     }
+    fetchTvShowDetail(id).then(data => {
+      if (data) {
+        setMovie(data);
+        setSelectedSeason(data.seasons?.[0] || { id: 's1', title: 'Season 1', seasonNumber: 1, episodes: [] });
+      }
+    });
   }, [id]);
 
   const { ref: playRef, isFocused: playFocused } = useFocusable('details-play');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { HashRouter, Switch, Route } from 'react-router-dom';
+import { HashRouter, Switch, Route, useLocation } from 'react-router-dom';
 import { FocusProvider } from './lib/focus/FocusContext';
 import { APP_CONFIG } from './config';
 
@@ -23,6 +23,8 @@ const LoginPage = lazy(() => import('./pages/Login'));
 const AppRouter: React.FC = () => {
   const [loggedIn, setLoggedIn] = useState(() => Boolean(localStorage.getItem('tv_auth_token')));
   const requireLogin = APP_CONFIG.auth.requireLoginForPlayback;
+  const location = useLocation();
+  const isPlayer = location.pathname.startsWith('/player');
 
   if (requireLogin && !loggedIn) {
     return (
@@ -35,7 +37,7 @@ const AppRouter: React.FC = () => {
   return (
     <FocusProvider>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <Header />
+        {!isPlayer && <Header />}
         <Suspense
           fallback={
             <div style={{

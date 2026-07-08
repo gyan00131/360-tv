@@ -1,16 +1,19 @@
 /* header.css – Navigation header styles */
 
 .nav-header {
-  position: absolute;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
-  height: 112px;
+  height: 72px;
   display: flex;
   align-items: center;
   padding: 0 48px;
-
-  z-index: 50;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  z-index: 100;
+  margin-bottom: 2vh;
 }
 
 .nav-avatar {
@@ -83,4 +86,13 @@
   outline: none;
   box-shadow: 0 0 0 4px var(--color-tv-accent);
   z-index: 10;
+}
+
+/* TV remote focus on nav tab */
+.nav-item.nav-focused {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  border-radius: 8px;
 }

@@ -40,7 +40,7 @@
   background-color: white;
   color: black;
   border-color: white;
-  transform: scale(1.05);
+   
   box-shadow: 0 0 0 4px var(--color-tv-accent), 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -63,7 +63,7 @@
 
 .fav-card.focused {
   opacity: 1;
-  transform: scale(1.05);
+   
   z-index: 10;
   box-shadow: 0 0 0 4px var(--color-tv-accent), 0 0 50px rgba(255, 255, 255, 0.1);
 }

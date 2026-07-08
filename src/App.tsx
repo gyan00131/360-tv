@@ -1,6 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { HashRouter, Switch, Route, useLocation } from 'react-router-dom';
-import { FocusProvider } from './lib/focus/FocusContext';
 import { APP_CONFIG } from './config';
 
 // Components
@@ -27,16 +26,11 @@ const AppRouter: React.FC = () => {
   const isPlayer = location.pathname.startsWith('/player');
 
   if (requireLogin && !loggedIn) {
-    return (
-      <FocusProvider>
-        <LoginPage onSuccess={() => setLoggedIn(true)} />
-      </FocusProvider>
-    );
+    return <LoginPage onSuccess={() => setLoggedIn(true)} />;
   }
 
   return (
-    <FocusProvider>
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         {!isPlayer && <Header />}
         <Suspense
           fallback={
@@ -76,7 +70,6 @@ const AppRouter: React.FC = () => {
           </div>
         </Suspense>
       </div>
-    </FocusProvider>
   );
 };
 

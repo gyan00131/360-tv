@@ -1,15 +1,19 @@
-import React from 'react';
-import { useFocusable } from '../lib/focus/FocusContext';
+import React, { useEffect } from 'react';
+import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
 import '../css/profile.css';
 
-const ProfilePage: React.FC = () => {
-  const { ref: logoutRef, isFocused: logoutFocused } = useFocusable('profile-logout');
-  const { ref: switchRef, isFocused: switchFocused } = useFocusable('profile-switch');
+const ProfileInner: React.FC = () => {
+  const { isActive, activeIndex, activate, setRef } = useSectionFocus('profile-actions', {
+    itemCount: 2,
+    onEnter: (i) => {
+      if (i === 1) {
+        localStorage.removeItem('tv_auth_token');
+        window.location.reload();
+      }
+    },
+  });
 
-  const handleLogout = () => {
-    localStorage.removeItem('tv_auth_token');
-    window.location.reload();
-  };
+  useEffect(() => { activate(0); }, []);
 
   return (
     <div className="profile-container">
@@ -20,8 +24,8 @@ const ProfilePage: React.FC = () => {
         <div style={{ textAlign: 'left' }}>
           <h1 className="profile-name">Sarah Jenkins</h1>
           <div className="profile-badges">
-             <span className="badge-blue">Premium Member</span>
-             <span className="badge-dim">Since 2022</span>
+            <span className="badge-blue">Premium Member</span>
+            <span className="badge-dim">Since 2022</span>
           </div>
         </div>
       </div>
@@ -30,7 +34,7 @@ const ProfilePage: React.FC = () => {
         {[
           { label: 'Watch Time', value: '1,240 hrs', color: '#60a5fa' },
           { label: 'Favorites', value: '42 titles', color: '#f87171' },
-          { label: 'Downloads', value: '12 GB', color: '#4ade80' }
+          { label: 'Downloads', value: '12 GB', color: '#4ade80' },
         ].map((stat, i) => (
           <div key={i} className="stat-card">
             <span className="stat-label">{stat.label}</span>
@@ -40,16 +44,17 @@ const ProfilePage: React.FC = () => {
       </div>
 
       <div className="profile-actions">
-        <button 
-          ref={switchRef as any}
-          className={`btn-secondary ${switchFocused ? 'focused tv-focus-outline' : ''}`}
+        <button
+          ref={(el) => setRef(el, 0)}
+          onClick={() => activate(0)}
+          className={`btn-secondary ${isActive && activeIndex === 0 ? 'focused tv-focus-outline' : ''}`}
         >
           Switch Profile
         </button>
-        <button 
-          ref={logoutRef as any}
-          onClick={handleLogout}
-          className={`btn-danger ${logoutFocused ? 'focused tv-focus-outline' : ''}`}
+        <button
+          ref={(el) => setRef(el, 1)}
+          onClick={() => { localStorage.removeItem('tv_auth_token'); window.location.reload(); }}
+          className={`btn-danger ${isActive && activeIndex === 1 ? 'focused tv-focus-outline' : ''}`}
         >
           Logout Session
         </button>
@@ -57,5 +62,11 @@ const ProfilePage: React.FC = () => {
     </div>
   );
 };
+
+const ProfilePage: React.FC = () => (
+  <FocusProvider>
+    <ProfileInner />
+  </FocusProvider>
+);
 
 export default ProfilePage;

@@ -116,11 +116,11 @@
 .modal-btn.confirm.focused {
   background-color: white;
   color: black;
-  transform: scale(1.05);
+   
 }
 
 .modal-btn.cancel.focused {
   background-color: var(--color-tv-accent);
   color: white;
-  transform: scale(1.05);
+   
 }

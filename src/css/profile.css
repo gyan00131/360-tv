@@ -115,7 +115,7 @@
 .btn-secondary.focused {
   background-color: white;
   color: black;
-  transform: scale(1.05);
+   
 }
 
 .btn-danger {
@@ -133,5 +133,5 @@
 .btn-danger.focused {
   background-color: #dc2626;
   color: white;
-  transform: scale(1.05);
+   
 }

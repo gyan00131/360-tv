@@ -47,7 +47,7 @@
 .shows-filter-btn.focused {
   background-color: white;
   color: black;
-  transform: scale(1.05);
+   
 }
 
 .shows-grid {
@@ -67,7 +67,7 @@
 }
 
 .show-card.focused {
-  transform: scale(1.05);
+   
   z-index: 10;
   box-shadow: 0 0 0 4px var(--color-tv-accent), 0 20px 40px rgba(0, 0, 0, 0.5);
 }

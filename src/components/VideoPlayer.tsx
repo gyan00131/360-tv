@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import shaka from 'shaka-player';
 import { Settings as SettingsIcon, Check, Play, Pause, RotateCcw, RotateCw } from 'lucide-react';
-import { useFocusable, FocusProvider } from '../lib/focus/FocusContext';
+import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
 import { AnimatePresence, motion } from 'motion/react';
 import { formatTime } from '../lib/util';
 import '../css/player.css';
@@ -11,61 +11,64 @@ interface VideoPlayerProps {
   onBack: () => void;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
+// Controls: [rewind, play/pause, forward, settings, exit] = 5 items horizontal
+const CTRL_REWIND = 0;
+const CTRL_PLAY   = 1;
+const CTRL_FWD    = 2;
+const CTRL_SET    = 3;
+const CTRL_EXIT   = 4;
+
+const VideoPlayerInner: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [player, setPlayer] = useState<shaka.Player | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsView, setSettingsView] = useState<'root' | 'quality' | 'audio' | 'cc'>('root');
-  
-  // Playback States
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [isAdPlaying, setIsAdPlaying] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // States for player tracks
   const [qualities, setQualities] = useState<shaka.extern.Track[]>([]);
   const [audioTracks, setAudioTracks] = useState<shaka.extern.Track[]>([]);
   const [ccTracks, setCcTracks] = useState<shaka.extern.Track[]>([]);
-  
   const [currentQuality, setCurrentQuality] = useState<number | null>(null);
   const [currentAudio, setCurrentAudio] = useState<string | null>(null);
   const [currentCc, setCurrentCc] = useState<string | null>(null);
 
-  const { ref: settingsBtnRef, isFocused: settingsFocused } = useFocusable('player-settings');
-  const { ref: backBtnRef, isFocused: backFocused } = useFocusable('player-exit');
-  const { ref: playPauseRef, isFocused: playPauseFocused, setFocus: setCenterFocus } = useFocusable('player-play-pause');
-  const { ref: rewindRef, isFocused: rewindFocused } = useFocusable('player-rewind');
-  const { ref: forwardRef, isFocused: forwardFocused } = useFocusable('player-forward');
+  const { isActive, activeIndex, activate, setRef } = useSectionFocus('player-controls', {
+    itemCount: 5,
+    onEnter: (i) => {
+      if (i === CTRL_REWIND) { if (videoRef.current) videoRef.current.currentTime -= 10; resetControlsTimeout(); }
+      else if (i === CTRL_PLAY) { togglePlay(); }
+      else if (i === CTRL_FWD) { if (videoRef.current) videoRef.current.currentTime += 10; resetControlsTimeout(); }
+      else if (i === CTRL_SET) { setShowSettings(s => !s); }
+      else if (i === CTRL_EXIT) { onBack(); }
+    },
+  });
 
-  useEffect(() => {
-    // Initial focus on center play/pause
-    const timer = setTimeout(() => {
-      setCenterFocus();
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [setCenterFocus]);
+  useEffect(() => { activate(CTRL_PLAY); }, []);
+
+  const togglePlay = () => {
+    if (!videoRef.current || isAdPlaying) return;
+    if (videoRef.current.paused) videoRef.current.play();
+    else videoRef.current.pause();
+    resetControlsTimeout();
+  };
 
   const resetControlsTimeout = () => {
     setShowControls(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     controlsTimeoutRef.current = setTimeout(() => {
-      if (!showSettings) {
-        setShowControls(false);
-      }
+      if (!showSettings) setShowControls(false);
     }, 4000);
   };
 
   useEffect(() => {
-    const handleKeys = (e: KeyboardEvent) => {
-      // Any key interaction brings back the controls
+    const handle = (e: KeyboardEvent) => {
       resetControlsTimeout();
-
       if (e.key === 'Backspace' || e.key === 'Escape') {
-        e.stopPropagation();
         e.preventDefault();
         if (showSettings) {
           if (settingsView !== 'root') setSettingsView('root');
@@ -73,201 +76,80 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
         } else {
           onBack();
         }
-        return;
-      }
-
-      if (!showSettings) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          if (isAdPlaying) return; 
-          
-          if (!settingsFocused && !backFocused && !playPauseFocused && !rewindFocused && !forwardFocused) {
-            if (videoRef.current) {
-              if (videoRef.current.paused) videoRef.current.play();
-              else videoRef.current.pause();
-            }
-          }
-        }
       }
     };
-
-    window.addEventListener('keydown', handleKeys, true);
-    return () => {
-      window.removeEventListener('keydown', handleKeys, true);
-      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    };
-  }, [showSettings, settingsView, settingsFocused, backFocused, playPauseFocused, rewindFocused, forwardFocused, onBack]);
+    window.addEventListener('keydown', handle, true);
+    return () => window.removeEventListener('keydown', handle, true);
+  }, [showSettings, settingsView, onBack]);
 
   useEffect(() => {
     const initPlayer = async () => {
       if (!videoRef.current) return;
-
       shaka.polyfill.installAll();
-      if (!shaka.Player.isBrowserSupported()) {
-        console.error('Browser not supported for shaka player');
-        return;
-      }
-
-      const playerInstance = new shaka.Player(videoRef.current);
-      setPlayer(playerInstance);
-
-      videoRef.current.addEventListener('timeupdate', () => {
-        setCurrentTime(videoRef.current?.currentTime || 0);
-      });
-      videoRef.current.addEventListener('loadedmetadata', () => {
-        setDuration(videoRef.current?.duration || 0);
-      });
+      if (!shaka.Player.isBrowserSupported()) return;
+      const p = new shaka.Player(videoRef.current);
+      setPlayer(p);
+      videoRef.current.addEventListener('timeupdate', () => setCurrentTime(videoRef.current?.currentTime || 0));
+      videoRef.current.addEventListener('loadedmetadata', () => setDuration(videoRef.current?.duration || 0));
       videoRef.current.addEventListener('play', () => setIsPlaying(true));
       videoRef.current.addEventListener('pause', () => setIsPlaying(false));
-
-      playerInstance.addEventListener('error', (event: any) => {
-        console.error('Shaka error:', event.detail);
-      });
-
+      p.addEventListener('error', (e: any) => console.error('Shaka error:', e.detail));
       try {
-        await playerInstance.load(url);
-        updateTracks(playerInstance);
-        
-        const google = (window as any).google;
-        if (google && google.ima) {
-          try {
-            const adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=';
-            const adDisplayContainer = new google.ima.AdDisplayContainer(containerRef.current, videoRef.current);
-            const adsLoader = new google.ima.AdsLoader(adDisplayContainer);
-            
-            adsLoader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, 
-              (e: any) => {
-                const adsManager = e.getAdsManager(videoRef.current);
-                adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, () => {
-                  setIsAdPlaying(true);
-                  setShowControls(false);
-                  if (videoRef.current) videoRef.current.pause();
-                });
-                adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, () => {
-                  setIsAdPlaying(false);
-                  if (videoRef.current) videoRef.current.play();
-                });
-                adsManager.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, () => {
-                  setIsAdPlaying(false);
-                  if (videoRef.current) videoRef.current.play();
-                });
-                adsManager.init(videoRef.current?.clientWidth || 1920, videoRef.current?.clientHeight || 1080, google.ima.ViewMode.NORMAL);
-                adsManager.start();
-              }, false);
-
-            const adsRequest = new google.ima.AdsRequest();
-            adsRequest.adTagUrl = adTagUrl;
-            adDisplayContainer.initialize();
-            adsLoader.requestAds(adsRequest);
-          } catch (imaErr) {
-            console.error('Failed to initialize IMA:', imaErr);
-          }
-        }
+        await p.load(url);
+        updateTracks(p);
       } catch (e) {
-        console.error('Error loading video content:', e);
+        console.error('Error loading video:', e);
       }
     };
-
     initPlayer();
-    return () => {
-      if (player) player.destroy();
-    };
+    return () => { if (player) player.destroy(); };
   }, [url]);
 
   const updateTracks = (p: shaka.Player) => {
     const variants = p.getVariantTracks();
     const text = p.getTextTracks();
-    const uniqueQualities = variants.filter((v, i, self) => 
-      i === self.findIndex((t) => t.height === v.height)
-    ).sort((a, b) => (b.height || 0) - (a.height || 0));
-    setQualities(uniqueQualities);
-    const uniqueAudio = variants.filter((v, i, self) => 
-      i === self.findIndex((t) => t.language === v.language)
-    );
-    setAudioTracks(uniqueAudio);
+    const uq = variants.filter((v, i, s) => i === s.findIndex(t => t.height === v.height)).sort((a, b) => (b.height || 0) - (a.height || 0));
+    setQualities(uq);
+    const ua = variants.filter((v, i, s) => i === s.findIndex(t => t.language === v.language));
+    setAudioTracks(ua);
     setCcTracks(text);
-    const activeVariant = variants.find(v => v.active);
-    if (activeVariant) {
-      setCurrentQuality(activeVariant.height || null);
-      setCurrentAudio(activeVariant.language);
-    }
-    const activeText = text.find(t => t.active);
-    if (activeText) setCurrentCc(activeText.language);
+    const av = variants.find(v => v.active);
+    if (av) { setCurrentQuality(av.height || null); setCurrentAudio(av.language); }
+    const at = text.find(t => t.active);
+    if (at) setCurrentCc(at.language);
   };
 
   const selectQuality = (height: number) => {
     if (!player) return;
     const track = qualities.find(q => q.height === height);
-    if (track) {
-      player.configure({ abr: { enabled: false } });
-      player.selectVariantTrack(track, true);
-      setCurrentQuality(height);
-    }
+    if (track) { player.configure({ abr: { enabled: false } }); player.selectVariantTrack(track, true); setCurrentQuality(height); }
   };
 
-  const selectAudio = (lang: string) => {
-    if (!player) return;
-    player.selectAudioLanguage(lang);
-    setCurrentAudio(lang);
-  };
+  const selectAudio = (lang: string) => { if (!player) return; player.selectAudioLanguage(lang); setCurrentAudio(lang); };
 
   const selectCc = (lang: string | null) => {
     if (!player) return;
-    if (lang === null) {
-      player.setTextTrackVisibility(false);
-      setCurrentCc(null);
-    } else {
-      player.setTextTrackVisibility(true);
-      const track = ccTracks.find(t => t.language === lang);
-      if (track) player.selectTextTrack(track);
-      setCurrentCc(lang);
-    }
+    if (lang === null) { player.setTextTrackVisibility(false); setCurrentCc(null); }
+    else { player.setTextTrackVisibility(true); const t = ccTracks.find(t => t.language === lang); if (t) player.selectTextTrack(t); setCurrentCc(lang); }
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const effectiveShowControls = showControls && !isAdPlaying;
 
   return (
-    <div 
-      ref={containerRef} 
-      className="player-container"
-      onMouseMove={resetControlsTimeout}
-    >
+    <div ref={containerRef} className="player-container" onMouseMove={resetControlsTimeout}>
       <video ref={videoRef} className="player-video" autoPlay playsInline />
 
-      {/* Center Controls */}
       <AnimatePresence>
         {effectiveShowControls && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="center-controls"
-          >
-            <button
-              ref={rewindRef as any}
-              onClick={() => { if (videoRef.current) videoRef.current.currentTime -= 10; resetControlsTimeout(); }}
-              className={`control-btn small ${rewindFocused ? 'focused' : ''}`}
-            >
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="center-controls">
+            <button ref={(el) => setRef(el, CTRL_REWIND)} onClick={() => { if (videoRef.current) videoRef.current.currentTime -= 10; resetControlsTimeout(); }} className={`control-btn small ${isActive && activeIndex === CTRL_REWIND ? 'focused' : ''}`}>
               <RotateCcw size={40} />
             </button>
-            <button
-              ref={playPauseRef as any}
-              onClick={() => { 
-                if (videoRef.current) {
-                  if (videoRef.current.paused) videoRef.current.play();
-                  else videoRef.current.pause();
-                }
-                resetControlsTimeout();
-              }}
-              className={`control-btn large ${playPauseFocused ? 'focused' : ''}`}
-            >
+            <button ref={(el) => setRef(el, CTRL_PLAY)} onClick={togglePlay} className={`control-btn large ${isActive && activeIndex === CTRL_PLAY ? 'focused' : ''}`}>
               {isPlaying ? <Pause size={64} fill="currentColor" /> : <Play size={64} fill="currentColor" style={{ marginLeft: '8px' }} />}
             </button>
-            <button
-              ref={forwardRef as any}
-              onClick={() => { if (videoRef.current) videoRef.current.currentTime += 10; resetControlsTimeout(); }}
-              className={`control-btn small ${forwardFocused ? 'focused' : ''}`}
-            >
+            <button ref={(el) => setRef(el, CTRL_FWD)} onClick={() => { if (videoRef.current) videoRef.current.currentTime += 10; resetControlsTimeout(); }} className={`control-btn small ${isActive && activeIndex === CTRL_FWD ? 'focused' : ''}`}>
               <RotateCw size={40} />
             </button>
           </motion.div>
@@ -278,20 +160,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
         {effectiveShowControls && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="top-bar">
-              <button 
-                ref={backBtnRef as any}
-                onClick={onBack}
-                className={`btn-primary ${backFocused ? 'focused' : ''}`}
-                style={{ fontSize: '16px', padding: '12px 32px' }}
-              >
+              <button ref={(el) => setRef(el, CTRL_EXIT)} onClick={onBack} className={`btn-primary ${isActive && activeIndex === CTRL_EXIT ? 'focused' : ''}`} style={{ fontSize: '16px', padding: '12px 32px' }}>
                 Exit Player
               </button>
-              <button 
-                ref={settingsBtnRef as any}
-                onClick={() => setShowSettings(!showSettings)}
-                className={`control-btn small ${settingsFocused ? 'focused' : ''}`}
-                style={{ padding: '16px' }}
-              >
+              <button ref={(el) => setRef(el, CTRL_SET)} onClick={() => setShowSettings(s => !s)} className={`control-btn small ${isActive && activeIndex === CTRL_SET ? 'focused' : ''}`} style={{ padding: '16px' }}>
                 <SettingsIcon size={24} />
               </button>
             </motion.div>
@@ -314,39 +186,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
       <AnimatePresence>
         {showSettings && (
           <div className="settings-overlay">
-            <motion.div 
-              initial={{ x: 400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 400, opacity: 0 }}
-              className="settings-panel"
-            >
+            <motion.div initial={{ x: 400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 400, opacity: 0 }} className="settings-panel">
               <h2 style={{ fontSize: '32px', marginBottom: '40px', textTransform: 'uppercase', fontStyle: 'italic', color: 'white' }}>Player Settings</h2>
-              <FocusProvider>
-                <div className="tv-scroll-hide" style={{ overflowY: 'auto' }}>
-                  {settingsView === 'root' && (
-                    <>
-                      <SettingItem label="Quality" value={currentQuality ? `${currentQuality}p` : 'Auto'} onClick={() => setSettingsView('quality')} id="set-quality" />
-                      <SettingItem label="Language" value={currentAudio || 'Default'} onClick={() => setSettingsView('audio')} id="set-audio" />
-                      <SettingItem label="Captions" value={currentCc || 'Off'} onClick={() => setSettingsView('cc')} id="set-cc" />
-                      <button onClick={() => setShowSettings(false)} id="set-close" style={{ width: '100%', marginTop: '32px' }}>Close</button>
-                    </>
-                  )}
-                  {settingsView === 'quality' && (
-                    <>
-                      <button onClick={() => setSettingsView('root')} style={{ marginBottom: '24px' }}>← Back</button>
-                      {qualities.map(q => (
-                        <SettingItem key={q.id} label={`${q.height}p`} active={currentQuality === q.height} onClick={() => { selectQuality(q.height!); setSettingsView('root'); }} id={`q-${q.height}`} />
-                      ))}
-                    </>
-                  )}
-                  {settingsView === 'audio' && (
-                    <>
-                      <button onClick={() => setSettingsView('root')} style={{ marginBottom: '24px' }}>← Back</button>
-                      {audioTracks.map(t => (
-                        <SettingItem key={t.id} label={t.language.toUpperCase()} active={currentAudio === t.language} onClick={() => { selectAudio(t.language); setSettingsView('root'); }} id={`a-${t.language}`} />
-                      ))}
-                    </>
-                  )}
-                </div>
-              </FocusProvider>
+              <SettingsMenu
+                settingsView={settingsView}
+                setSettingsView={setSettingsView}
+                currentQuality={currentQuality}
+                currentAudio={currentAudio}
+                currentCc={currentCc}
+                qualities={qualities}
+                audioTracks={audioTracks}
+                ccTracks={ccTracks}
+                selectQuality={selectQuality}
+                selectAudio={selectAudio}
+                selectCc={selectCc}
+                onClose={() => setShowSettings(false)}
+              />
             </motion.div>
           </div>
         )}
@@ -355,17 +210,86 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onBack }) => {
   );
 };
 
-const SettingItem: React.FC<{ label: string; value?: string; active?: boolean; onClick: () => void; id: string }> = ({ label, value, active, onClick, id }) => {
-  const { ref, isFocused } = useFocusable(id);
-  return (
-    <button ref={ref as any} onClick={onClick} className={`settings-item ${isFocused ? 'focused' : ''}`}>
-      <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-        <span style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '18px' }}>{label}</span>
-        {value && <span style={{ fontSize: '14px', opacity: 0.5 }}>{value}</span>}
+interface SettingsMenuProps {
+  settingsView: 'root' | 'quality' | 'audio' | 'cc';
+  setSettingsView: (v: 'root' | 'quality' | 'audio' | 'cc') => void;
+  currentQuality: number | null;
+  currentAudio: string | null;
+  currentCc: string | null;
+  qualities: shaka.extern.Track[];
+  audioTracks: shaka.extern.Track[];
+  ccTracks: shaka.extern.Track[];
+  selectQuality: (h: number) => void;
+  selectAudio: (l: string) => void;
+  selectCc: (l: string | null) => void;
+  onClose: () => void;
+}
+
+const SettingsMenu: React.FC<SettingsMenuProps> = (props) => {
+  const rootItems = ['Quality', 'Language', 'Captions', 'Close'];
+  const { isActive, activeIndex, activate, setRef } = useSectionFocus('settings-menu', {
+    itemCount: rootItems.length,
+    onEnter: (i) => {
+      if (i === 0) props.setSettingsView('quality');
+      else if (i === 1) props.setSettingsView('audio');
+      else if (i === 2) props.setSettingsView('cc');
+      else props.onClose();
+    },
+  });
+
+  useEffect(() => { activate(0); }, [props.settingsView]);
+
+  if (props.settingsView === 'root') {
+    return (
+      <div className="tv-scroll-hide" style={{ overflowY: 'auto' }}>
+        <button ref={(el) => setRef(el, 0)} onClick={() => props.setSettingsView('quality')} className={`settings-item ${isActive && activeIndex === 0 ? 'focused' : ''}`}>
+          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+            <span style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '18px' }}>Quality</span>
+            <span style={{ fontSize: '14px', opacity: 0.5 }}>{props.currentQuality ? `${props.currentQuality}p` : 'Auto'}</span>
+          </div>
+        </button>
+        <button ref={(el) => setRef(el, 1)} onClick={() => props.setSettingsView('audio')} className={`settings-item ${isActive && activeIndex === 1 ? 'focused' : ''}`}>
+          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+            <span style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '18px' }}>Language</span>
+            <span style={{ fontSize: '14px', opacity: 0.5 }}>{props.currentAudio || 'Default'}</span>
+          </div>
+        </button>
+        <button ref={(el) => setRef(el, 2)} onClick={() => props.setSettingsView('cc')} className={`settings-item ${isActive && activeIndex === 2 ? 'focused' : ''}`}>
+          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+            <span style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '18px' }}>Captions</span>
+            <span style={{ fontSize: '14px', opacity: 0.5 }}>{props.currentCc || 'Off'}</span>
+          </div>
+        </button>
+        <button ref={(el) => setRef(el, 3)} onClick={props.onClose} className={`settings-item ${isActive && activeIndex === 3 ? 'focused' : ''}`} style={{ marginTop: '32px' }}>
+          Close
+        </button>
       </div>
-      {active && <Check size={18} />}
-    </button>
+    );
+  }
+
+  const subItems = props.settingsView === 'quality'
+    ? props.qualities.map(q => ({ label: `${q.height}p`, active: props.currentQuality === q.height, action: () => { props.selectQuality(q.height!); props.setSettingsView('root'); } }))
+    : props.settingsView === 'audio'
+    ? props.audioTracks.map(t => ({ label: t.language.toUpperCase(), active: props.currentAudio === t.language, action: () => { props.selectAudio(t.language); props.setSettingsView('root'); } }))
+    : props.ccTracks.map(t => ({ label: t.language.toUpperCase(), active: props.currentCc === t.language, action: () => { props.selectCc(t.language); props.setSettingsView('root'); } }));
+
+  return (
+    <div className="tv-scroll-hide" style={{ overflowY: 'auto' }}>
+      <button onClick={() => props.setSettingsView('root')} style={{ marginBottom: '24px' }}>← Back</button>
+      {subItems.map((item, i) => (
+        <button key={i} ref={(el) => setRef(el, i)} onClick={item.action} className={`settings-item ${isActive && activeIndex === i ? 'focused' : ''}`}>
+          <span style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '18px' }}>{item.label}</span>
+          {item.active && <Check size={18} />}
+        </button>
+      ))}
+    </div>
   );
 };
+
+const VideoPlayer: React.FC<VideoPlayerProps> = (props) => (
+  <FocusProvider>
+    <VideoPlayerInner {...props} />
+  </FocusProvider>
+);
 
 export default VideoPlayer;

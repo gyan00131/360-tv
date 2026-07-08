@@ -5,336 +5,95 @@ import React, {
   useEffect,
   useCallback,
   useRef,
-  useMemo,
 } from 'react';
 
-// ----------------------------------------------------------------------
-// Types – now only numbers
-// ----------------------------------------------------------------------
-
-export interface KeyMap {
-  up?: number | number[];
-  down?: number | number[];
-  left?: number | number[];
-  right?: number | number[];
-  select?: number | number[];
-  back?: number | number[];
-  exit?: number | number[];
-}
-
 interface FocusContextType {
-  focusedId: string | null;
-  setFocusedId: (id: string | null) => void;
-  register: (id: string, ref: React.RefObject<HTMLElement>, metadata?: any) => void;
-  unregister: (id: string) => void;
-  moveFocus: (direction: 'up' | 'down' | 'left' | 'right') => void;
+  focusedSection: string | null;
+  setFocusedSection: (id: string | null) => void;
 }
-
-interface FocusEntry {
-  ref: React.RefObject<HTMLElement>;
-  metadata?: any;
-}
-
-interface FocusProviderProps {
-  children: React.ReactNode;
-  /** Custom key mappings – numbers only (keyCode values) */
-  keyMap?: Partial<KeyMap>;
-}
-
-// ----------------------------------------------------------------------
-// Default numeric key codes (common TV remote / keyboard)
-// ----------------------------------------------------------------------
-
-const defaultKeyMap: Required<KeyMap> = {
-  up: 38,        // ArrowUp
-  down: 40,      // ArrowDown
-  left: 37,      // ArrowLeft
-  right: 39,     // ArrowRight
-  select: 13,    // Enter
-  back: 8,       // Backspace
-  exit: 27,      // Escape
-};
-
-// ----------------------------------------------------------------------
-// Context
-// ----------------------------------------------------------------------
 
 const FocusContext = createContext<FocusContextType | undefined>(undefined);
 
-// ----------------------------------------------------------------------
-// Provider
-// ----------------------------------------------------------------------
-
-export const FocusProvider: React.FC<FocusProviderProps> = ({
-  children,
-  keyMap: userKeyMap = {},
-}) => {
-  const [focusedId, setFocusedId] = useState<string | null>(null);
-  const elements = useRef<Map<string, FocusEntry>>(new Map());
-  const navLockRef = useRef(false);
-  const hasFocusRef = useRef(false);
-
-  // Merge user mappings with defaults
-  const mergedKeyMap = useMemo<Required<KeyMap>>(
-    () => ({
-      ...defaultKeyMap,
-      ...userKeyMap,
-    }),
-    [userKeyMap]
-  );
-
-  // Build a single Map<number, string> for O(1) numeric lookups
-  const actionMap = useMemo(() => {
-    const map = new Map<number, string>();
-
-    const add = (action: string, codes: number | number[]) => {
-      const arr = Array.isArray(codes) ? codes : [codes];
-      arr.forEach((code) => {
-        map.set(code, action);
-      });
-    };
-
-    add('up', mergedKeyMap.up);
-    add('down', mergedKeyMap.down);
-    add('left', mergedKeyMap.left);
-    add('right', mergedKeyMap.right);
-    add('select', mergedKeyMap.select);
-    add('back', mergedKeyMap.back);
-    add('exit', mergedKeyMap.exit);
-
-    return map;
-  }, [mergedKeyMap]);
-
-  // ----------------------------------------------------------------------
-  // Registration
-  // ----------------------------------------------------------------------
-
-  const register = useCallback(
-    (id: string, ref: React.RefObject<HTMLElement>, metadata?: any) => {
-      elements.current.set(id, { ref, metadata });
-      if (!hasFocusRef.current) {
-        hasFocusRef.current = true;
-        setFocusedId(id);
-      }
-    },
-    []
-  );
-
-  const unregister = useCallback((id: string) => {
-    elements.current.delete(id);
-    setFocusedId((prev) => {
-      if (prev === id) {
-        const next = Array.from(elements.current.keys())[0] ?? null;
-        if (!next) hasFocusRef.current = false;
-        return next;
-      }
-      return prev;
-    });
-  }, []);
-
-  // ----------------------------------------------------------------------
-  // Navigation logic (unchanged)
-  // ----------------------------------------------------------------------
-
-  const getFocusableEntries = () =>
-    Array.from(elements.current.entries()).filter(([, entry]) =>
-      Boolean(entry.ref.current)
-    );
-
-  const moveFocus = useCallback(
-    (direction: 'up' | 'down' | 'left' | 'right') => {
-      if (!focusedId || navLockRef.current) return;
-
-      const currentEntry = elements.current.get(focusedId);
-      if (!currentEntry?.ref.current) return;
-
-      navLockRef.current = true;
-      setTimeout(() => {
-        navLockRef.current = false;
-      }, 300);
-
-      const currentRect = currentEntry.ref.current.getBoundingClientRect();
-      const currentCenterY = currentRect.top + currentRect.height / 2;
-      const currentCenterX = currentRect.left + currentRect.width / 2;
-      const ROW_THRESHOLD = 20;
-
-      // Get all focusable candidates
-      let candidates = getFocusableEntries()
-        .filter(([id]) => id !== focusedId)
-        .map(([id, entry]) => ({
-          id,
-          centerX:
-            entry.ref.current!.getBoundingClientRect().left +
-            entry.ref.current!.getBoundingClientRect().width / 2,
-          centerY:
-            entry.ref.current!.getBoundingClientRect().top +
-            entry.ref.current!.getBoundingClientRect().height / 2,
-          metadata: entry.metadata,
-        }));
-
-      // For left/right, restrict to same group (shelf)
-      if (direction === 'left' || direction === 'right') {
-        const currentGroup = currentEntry.metadata?.groupId;
-        if (currentGroup !== undefined) {
-          candidates = candidates.filter(
-            (c) => c.metadata?.groupId === currentGroup
-          );
-        }
-      }
-
-      if (candidates.length === 0) return;
-
-      let nextId: string | null = null;
-
-      if (direction === 'left' || direction === 'right') {
-        const sameRow = candidates.filter(
-          (c) => Math.abs(c.centerY - currentCenterY) < ROW_THRESHOLD
-        );
-        if (direction === 'right') {
-          const right = sameRow
-            .filter((c) => c.centerX > currentCenterX)
-            .sort((a, b) => a.centerX - b.centerX);
-          nextId =
-            right[0]?.id ??
-            sameRow.sort((a, b) => a.centerX - b.centerX)[0]?.id ??
-            null;
-        } else {
-          const left = sameRow
-            .filter((c) => c.centerX < currentCenterX)
-            .sort((a, b) => b.centerX - a.centerX);
-          nextId =
-            left[0]?.id ??
-            sameRow.sort((a, b) => b.centerX - a.centerX)[0]?.id ??
-            null;
-        }
-      } else {
-        // Up / Down – allow moving across groups
-        if (direction === 'down') {
-          const below = candidates.filter(
-            (c) => c.centerY > currentCenterY + ROW_THRESHOLD
-          );
-          const pool = below.length > 0 ? below : candidates;
-          nextId = pool
-            .sort((a, b) => {
-              const dy = below.length > 0 ? a.centerY - b.centerY : a.centerY - b.centerY;
-              if (Math.abs(dy) > ROW_THRESHOLD) return dy;
-              return (
-                Math.abs(a.centerX - currentCenterX) -
-                Math.abs(b.centerX - currentCenterX)
-              );
-            })[0]?.id ?? null;
-        } else {
-          const above = candidates.filter(
-            (c) => c.centerY < currentCenterY - ROW_THRESHOLD
-          );
-          const pool = above.length > 0 ? above : candidates;
-          nextId = pool
-            .sort((a, b) => {
-              const dy = above.length > 0 ? b.centerY - a.centerY : b.centerY - a.centerY;
-              if (Math.abs(dy) > ROW_THRESHOLD) return dy;
-              return (
-                Math.abs(a.centerX - currentCenterX) -
-                Math.abs(b.centerX - currentCenterX)
-              );
-            })[0]?.id ?? null;
-        }
-      }
-
-      if (nextId) {
-        setFocusedId(nextId);
-        const nextElem = elements.current.get(nextId);
-        nextElem?.ref.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'nearest',
-        });
-      }
-    },
-    [focusedId]
-  );
-
-  // ----------------------------------------------------------------------
-  // Keyboard event handler – uses numeric keyCode only (fast Map lookup)
-  // ----------------------------------------------------------------------
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const action = actionMap.get(e.keyCode); // direct numeric lookup
-
-      if (!action) return;
-
-      e.preventDefault();
-
-      switch (action) {
-        case 'up':
-          moveFocus('up');
-          break;
-        case 'down':
-          moveFocus('down');
-          break;
-        case 'left':
-          moveFocus('left');
-          break;
-        case 'right':
-          moveFocus('right');
-          break;
-        case 'select':
-          if (focusedId) {
-            const current = elements.current.get(focusedId);
-            current?.ref.current?.click();
-          }
-          break;
-        case 'back':
-        case 'exit':
-          // Custom back/exit logic can be added here via callbacks
-          break;
-        default:
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [focusedId, moveFocus, actionMap]);
-
-  // ----------------------------------------------------------------------
-  // Provider value
-  // ----------------------------------------------------------------------
-
+export const FocusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [focusedSection, setFocusedSection] = useState<string | null>(null);
   return (
-    <FocusContext.Provider
-      value={{ focusedId, setFocusedId, register, unregister, moveFocus }}
-    >
+    <FocusContext.Provider value={{ focusedSection, setFocusedSection }}>
       {children}
     </FocusContext.Provider>
   );
 };
 
-// ----------------------------------------------------------------------
-// Hooks (unchanged)
-// ----------------------------------------------------------------------
-
 export const useFocus = () => {
-  const context = useContext(FocusContext);
-  if (!context) throw new Error('useFocus must be used within a FocusProvider');
-  return context;
+  const ctx = useContext(FocusContext);
+  if (!ctx) throw new Error('useFocus must be used within FocusProvider');
+  return ctx;
 };
 
-export const useFocusable = (id: string, metadata?: any) => {
-  const { focusedId, setFocusedId, register, unregister } = useFocus();
-  const ref = useRef<HTMLElement>(null);
+// Each section calls this hook to manage its own focus
+export const useSectionFocus = (sectionId: string, options: {
+  itemCount: number;
+  isVertical?: boolean;
+  onEnter?: (index: number) => void;
+  onUp?: () => void;
+  onDown?: () => void;
+  onLeft?: () => void;
+  onRight?: () => void;
+}) => {
+  const { focusedSection, setFocusedSection } = useFocus();
+  const isActive = focusedSection === sectionId;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const itemRefs = useRef<(HTMLElement | null)[]>([]);
 
-  const metadataRef = useRef(metadata);
-  metadataRef.current = metadata;
+  const activate = useCallback((index = 0) => {
+    setFocusedSection(sectionId);
+    setActiveIndex(index);
+  }, [sectionId, setFocusedSection]);
+
+  // Scroll active item into view
+  useEffect(() => {
+    if (isActive) {
+      itemRefs.current[activeIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    }
+  }, [isActive, activeIndex]);
 
   useEffect(() => {
-    register(id, ref, metadataRef.current);
-    return () => unregister(id);
-  }, [id, register, unregister]);
+    if (!isActive) return;
 
-  const isFocused = focusedId === id;
+    const handle = (e: KeyboardEvent) => {
+      const prev = options.isVertical ? 'ArrowUp' : 'ArrowLeft';
+      const next = options.isVertical ? 'ArrowDown' : 'ArrowRight';
 
-  return { ref, isFocused, setFocus: () => setFocusedId(id) };
+      if (e.key === prev) {
+        e.preventDefault();
+        if (activeIndex > 0) setActiveIndex(i => i - 1);
+        // left edge: do nothing (stay)
+      } else if (e.key === next) {
+        e.preventDefault();
+        if (activeIndex < options.itemCount - 1) setActiveIndex(i => i + 1);
+        // right edge: do nothing (stay)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        options.onUp?.();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        options.onDown?.();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        options.onEnter?.(activeIndex);
+      }
+    };
+
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  }, [isActive, activeIndex, options]);
+
+  const setRef = useCallback((el: HTMLElement | null, index: number) => {
+    itemRefs.current[index] = el;
+  }, []);
+
+  return { isActive, activeIndex, activate, setRef };
 };

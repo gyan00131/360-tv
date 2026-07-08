@@ -52,7 +52,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
             <Lock size={24} />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '30px' }}>Sign in to 360 TV</h1>
+            <h1 style={{ margin: 0, fontSize: '30px' }}>Sign in to JET STREAM</h1>
             <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.64)' }}>Use the TV remote or keyboard to continue.</p>
           </div>
         </div>

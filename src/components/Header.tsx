@@ -91,7 +91,7 @@ const Header: React.FC = () => {
         <div className="brand-icon">
           <Play size={16} fill="white" style={{ marginLeft: '2px' }} />
         </div>
-        <span className="brand-text">360 TV</span>
+        <span className="brand-text">JET STREAM</span>
       </div>
     </header>
   );

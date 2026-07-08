@@ -2,7 +2,7 @@ import { Movie, Category, Season, Episode } from './types/common-interface';
 
 export const CATEGORIES: Category[] = [
   { id: 'trending', title: 'Trending Now' },
-  { id: 'originals', title: '360 TV Originals' },
+  { id: 'originals', title: 'JET STREAM Originals' },
   { id: 'action', title: 'Action & Adventure' },
   { id: 'comedy', title: 'Comedy' },
 ];

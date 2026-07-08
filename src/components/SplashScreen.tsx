@@ -20,7 +20,7 @@ const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
           <Play size={48} fill="white" style={{ transform: 'rotate(-45deg)', marginLeft: '4px' }} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-          <span style={{ fontSize: '48px', fontWeight: '900', letterSpacing: '-0.05em', color: 'white', fontStyle: 'italic', textTransform: 'uppercase' }}>360 TV</span>
+          <span style={{ fontSize: '48px', fontWeight: '900', letterSpacing: '-0.05em', color: 'white', fontStyle: 'italic', textTransform: 'uppercase' }}>JET STREAM</span>
           <span style={{ fontSize: '14px', fontWeight: 'bold', letterSpacing: '0.4em', color: 'var(--color-tv-accent)', textTransform: 'uppercase' }}>Loading Core Engine</span>
         </div>
       </motion.div>

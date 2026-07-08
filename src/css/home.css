@@ -326,7 +326,7 @@
 /* Adjust banner to account for fixed menu */
 .home-banner {
   margin-top: 72px; /* push down below menu */
-  height: calc(100vh - 72px); /* take remaining viewport height */
+  height: calc(60vh - 72px); /* take remaining viewport height */
 }
 
 /* Top menu focus */

@@ -63,16 +63,28 @@ export const fetchSearchResults = async (query: string): Promise<Movie[]> => {
 
 export const fetchGenres = async () => requestJson<any>(APP_CONFIG.endpoints.genres);
 export const fetchRating = async () => requestJson<any>(APP_CONFIG.endpoints.rating);
+const BANNER_IMAGE_BASE = 'https://dev.e360tv.com/storage/tvshow/image/';
+
 export const fetchBanners = async () => {
   const payload = await requestJson<any>(APP_CONFIG.endpoints.banners);
-  const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+  const items: any[] = Array.isArray(payload?.data?.data)
+    ? payload.data.data
+    : Array.isArray(payload?.data)
+    ? payload.data
+    : Array.isArray(payload)
+    ? payload
+    : [];
 
-  return items.map((item: any) => ({
-    id: String(item?.id ?? `banner-${Math.random().toString(36).slice(2, 8)}`),
-    title: item?.title || item?.name || 'Featured',
-    description: stripHtml(item?.description || item?.short_desc || item?.details || 'No description available.'),
-    image: item?.image || item?.poster_image || item?.thumbnail_url || item?.banner_image || FALLBACK_IMAGE,
-  }));
+  return items.map((item: any) => {
+    const rawImage = item?.file_url || item?.poster_url || item?.image || item?.banner_image || '';
+    const image = rawImage.startsWith('http') ? rawImage : rawImage ? `${BANNER_IMAGE_BASE}${rawImage}` : FALLBACK_IMAGE;
+    return {
+      id: String(item?.id ?? `banner-${Math.random().toString(36).slice(2, 8)}`),
+      title: item?.title || item?.type_name || item?.name || 'Featured',
+      description: stripHtml(item?.description || item?.short_desc || item?.details || ''),
+      image,
+    };
+  });
 };
 export const fetchDashboardDetail = async () => requestJson<any>(APP_CONFIG.endpoints.dashboardDetail);
 export const fetchLiveTvCategories = async () => requestJson<any>(APP_CONFIG.endpoints.liveTvCategories);

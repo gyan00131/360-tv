@@ -11,10 +11,21 @@
 .home-banner {
   position: relative;
   width: 100%;
-  height: 100vh;
+  margin-top: 88px;               /* 72px (menu) + 16px gap */
+  height: calc(70vh - 88px);
   flex-shrink: 0;
   overflow: hidden;
   background-color: var(--color-tv-surface);
+  border-radius: 12px;            /* for rounded border */
+  transition: box-shadow 0.25s ease;
+  margin-top:10vh;
+  padding-left:2vw;
+  padding-right:2vw;
+}
+s
+/* Focus border for the entire banner (when any child is focused) */
+.home-banner:focus-within {
+  box-shadow: 0 0 0 4px white, 0 0 30px rgba(255, 255, 255, 0.2);
 }
 
 .banner-image {
@@ -24,26 +35,26 @@
   opacity: 0.75;
 }
 
-.banner-overlay-top {
+/* .banner-overlay-top {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 200px;
-  background: linear-gradient(to bottom, rgba(5,5,5,0.9), transparent);
-  z-index: 1;
-}
 
-.banner-overlay-left {
+  z-index: 1;
+} */
+
+/* .banner-overlay-left {
   position: absolute;
   inset-y: 0;
   left: 0;
   width: 55%;
   background: linear-gradient(to right, rgba(5,5,5,0.95), transparent);
   z-index: 1;
-}
+} */
 
-.banner-overlay-bottom {
+/* .banner-overlay-bottom {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -51,7 +62,7 @@
   height: 260px;
   background: linear-gradient(to top, var(--color-tv-bg), transparent);
   z-index: 1;
-}
+} */
 
 /* Banner text content */
 .banner-content {
@@ -114,31 +125,39 @@
 /* Carousel dots */
 .banner-dots {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;      /* horizontal */
   gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
   align-self: center;
-  padding-bottom: 8px;
 }
 
 .banner-dot {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.3);
-  transition: all var(--transition-standard);
+  transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .banner-dot.active {
   background-color: white;
-  height: 24px;
-  border-radius: 3px;
+  width: 28px;            /* wider for active dot */
+  border-radius: 6px;
+}
+
+.banner-dot.focused {
+  outline: 2px solid white;
+  outline-offset: 3px;
+  transform: scale(1.2);
 }
 
 /* ── Shelves ── */
 .home-shelves {
+  padding-top: 32px;       /* gap between banner and first shelf */
   padding-bottom: 80px;
-  padding-top: 8px;
 }
 
 .shelf-container {
@@ -218,8 +237,14 @@
   font-size: 14px;
 }
 
+/* ── Focus outline for all interactive elements ── */
+.tv-focus-outline {
+  outline: 2px solid white;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
 
-/* Top Menu */
+/* Top Menu (style – component not shown, but included for completeness) */
 .top-menu {
   position: fixed;
   top: 0;
@@ -231,7 +256,7 @@
   justify-content: space-between;
   padding: 0 48px;
   height: 72px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.6));
+
   backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
@@ -323,53 +348,9 @@
   color: white;
 }
 
-/* Adjust banner to account for fixed menu */
-.home-banner {
-  margin-top: 72px; /* push down below menu */
-  height: calc(60vh - 72px); /* take remaining viewport height */
-}
-
 /* Top menu focus */
 .top-menu .focused {
   outline: 2px solid white;
   outline-offset: 4px;
   border-radius: 4px;
-}
-
-/* Banner dot focus */
-.banner-dot.focused {
-  outline: 2px solid white;
-  outline-offset: 2px;
-  transform: scale(1.2);
-}
-
-.banner-dots {
-  display: flex;
-  flex-direction: row;    /* horizontal instead of vertical */
-  gap: 10px;              /* spacing between dots */
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0;
-}
-
-/* Optional: adjust the dot size and active state */
-.banner-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.banner-dot.active {
-  background-color: white;
-  width: 28px;            /* wider for active dot */
-  border-radius: 6px;
-}
-
-.banner-dot.focused {
-  outline: 2px solid white;
-  outline-offset: 3px;
-  transform: scale(1.2);
 }

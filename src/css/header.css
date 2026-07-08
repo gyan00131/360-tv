@@ -1,0 +1,86 @@
+/* header.css – Navigation header styles */
+
+.nav-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+
+  z-index: 50;
+}
+
+.nav-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all var(--transition-standard);
+  cursor: pointer;
+}
+
+.nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nav-tabs {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 0 32px;
+}
+
+.nav-item {
+  padding: 8px 24px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-standard);
+  color: var(--color-tv-text-dim);
+}
+
+.nav-item.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-tv-text);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-text {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Focus outline for nav items (uses global .tv-focus-outline) */
+.nav-item.tv-focus-outline,
+.nav-avatar.tv-focus-outline {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--color-tv-accent);
+  z-index: 10;
+}

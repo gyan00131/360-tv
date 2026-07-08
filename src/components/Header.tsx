@@ -2,6 +2,7 @@ import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { Search, Play } from 'lucide-react';
 import { useFocusable } from '../lib/focus/FocusContext';
+import '../css/Header.css';
 
 const TopNavItem: React.FC<{ id: string; label: string; icon?: React.ReactNode; isActive: boolean; onSelect: () => void }> = ({ id, label, icon, isActive, onSelect }) => {
   const { ref, isFocused } = useFocusable(`nav-${id}`);

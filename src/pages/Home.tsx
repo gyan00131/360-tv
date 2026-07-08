@@ -271,6 +271,7 @@ const Banner: React.FC = () => {
     </div>
   );
 };
+
 // HomePage
 const HomePage: React.FC = () => {
   const history = useHistory();

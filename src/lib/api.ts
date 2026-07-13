@@ -86,6 +86,17 @@ export const fetchBanners = async () => {
     };
   });
 };
+export const fetchWatchList = async (): Promise<Movie[]> => {
+  const payload = await requestJson<any>(APP_CONFIG.endpoints.watchList);
+  const items = Array.isArray(payload?.data) ? payload.data : [];
+  return items.map((item: any) => ({
+    ...normalizeMediaItem(item, 'Watchlist'),
+    type: item?.type ?? item?.content_type ?? 'movie',
+    created_at: item?.created_at ?? '',
+    is_4k: item?.is_4k ?? item?.quality === '4k' ?? false,
+  }));
+};
+
 export const fetchDashboardDetail = async () => requestJson<any>(APP_CONFIG.endpoints.dashboardDetail);
 export const fetchLiveTvCategories = async () => requestJson<any>(APP_CONFIG.endpoints.liveTvCategories);
 export const fetchLiveTvDashboard = async () => requestJson<any>(APP_CONFIG.endpoints.liveTvDashboard);

@@ -33,6 +33,7 @@ export const useFocus = () => {
 export const useSectionFocus = (sectionId: string, options: {
   itemCount: number;
   isVertical?: boolean;
+  noDefaultNav?: boolean;
   onEnter?: (index: number) => void;
   onUp?: () => void;
   onDown?: () => void;
@@ -64,6 +65,10 @@ export const useSectionFocus = (sectionId: string, options: {
     if (!isActive) return;
 
     const handle = (e: KeyboardEvent) => {
+      if (options.noDefaultNav) {
+        if (e.key === 'Enter') { e.preventDefault(); options.onEnter?.(activeIndex); }
+        return;
+      }
       const prev = options.isVertical ? 'ArrowUp' : 'ArrowLeft';
       const next = options.isVertical ? 'ArrowDown' : 'ArrowRight';
 

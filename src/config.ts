@@ -16,6 +16,7 @@ export const APP_CONFIG = {
     channels: '/v3/channel-list',
     videos: '/video-list',
     login: '/login',
+    watchList: '/v3/watch-list',
   },
 } as const;
 

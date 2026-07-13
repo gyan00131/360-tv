@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import Header from '../components/Header';
 import { Movie } from '../types/common-interface';
 import { fetchMovies } from '../lib/api';
 import { MOVIES } from '../constants';
@@ -52,7 +53,8 @@ const MoviesInner: React.FC = () => {
   useEffect(() => { activate(0); }, [movies]);
 
   return (
-    <div className="shows-container tv-scroll-hide">
+    <div className="shows-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }}>
+      <Header />
       <div className="shows-header">
         <h2 className="shows-title">Movies</h2>
       </div>

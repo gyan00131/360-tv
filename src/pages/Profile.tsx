@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import Header from '../components/Header';
 import '../css/profile.css';
 
 const ProfileInner: React.FC = () => {
@@ -16,7 +17,8 @@ const ProfileInner: React.FC = () => {
   useEffect(() => { activate(0); }, []);
 
   return (
-    <div className="profile-container">
+    <div className="profile-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }}>
+      <Header />
       <div className="profile-header">
         <div className="profile-avatar-large">
           <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&q=80" alt="Profile" />

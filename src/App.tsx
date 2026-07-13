@@ -3,7 +3,6 @@ import { HashRouter, Switch, Route, useLocation } from 'react-router-dom';
 import { APP_CONFIG } from './config';
 
 // Components
-import Header from './components/Header';
 import SplashScreen from './components/SplashScreen';
 
 // Pages - Lazy loaded
@@ -31,7 +30,6 @@ const AppRouter: React.FC = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        {!isPlayer && <Header />}
         <Suspense
           fallback={
             <div style={{

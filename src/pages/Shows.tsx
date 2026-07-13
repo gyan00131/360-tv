@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import Header from '../components/Header';
 import { SERIES } from '../constants';
 import { Movie } from '../types/common-interface';
 import { fetchTvShows } from '../lib/api';
@@ -63,7 +64,8 @@ const ShowsInner: React.FC = () => {
   useEffect(() => { activateFilters(0); }, []);
 
   return (
-    <div className="shows-container tv-scroll-hide">
+    <div className="shows-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }}>
+      <Header />
       <div className="shows-header">
         <h2 className="shows-title">TV Shows</h2>
         <div className="shows-filter-group">

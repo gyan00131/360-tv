@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import Header from '../components/Header';
 import '../css/categories.css';
 
 const COLS = 3;
@@ -57,7 +58,8 @@ const CategoriesInner: React.FC = () => {
   useEffect(() => { activate(0); }, []);
 
   return (
-    <div className="categories-container tv-scroll-hide" onClick={() => activate(activeIndex)}>
+    <div className="categories-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }} onClick={() => activate(activeIndex)}>
+      <Header />
       <div className="categories-grid">
         {CAT_ITEMS.map((cat, i) => (
           <div

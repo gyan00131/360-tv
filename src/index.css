@@ -47,6 +47,10 @@ button {
   overflow: hidden;
 }
 
+/* Hide scrollbar globally on page containers */
+*::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Common Utilities */
 .tv-scroll-hide::-webkit-scrollbar {
   display: none;

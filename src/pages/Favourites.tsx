@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import Header from '../components/Header';
 import { MOVIES } from '../constants';
 import { Movie } from '../types/common-interface';
 import { Check } from 'lucide-react';
@@ -55,7 +56,8 @@ const FavouritesInner: React.FC = () => {
   useEffect(() => { activateFilters(0); }, []);
 
   return (
-    <div className="fav-container tv-scroll-hide">
+    <div className="fav-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }}>
+      <Header />
       <div className="fav-filters">
         {FILTERS.map((f, i) => (
           <button

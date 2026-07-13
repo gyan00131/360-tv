@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import Header from '../components/Header';
 import { MOVIES } from '../constants';
 import { fetchSearchResults } from '../lib/api';
 import { Movie } from '../types/common-interface';
@@ -108,7 +109,8 @@ const SearchInner: React.FC = () => {
   useEffect(() => { activateKb(0); }, []);
 
   return (
-    <div className="search-container">
+    <div className="search-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }}>
+      <Header />
       <div className="search-input-side">
         <div className="search-buffer-box">
           <span className="search-buffer-label">Search Buffer</span>

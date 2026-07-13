@@ -7,6 +7,8 @@ import { Movie } from "../types/common-interface";
 import { fetchBanners, fetchMovies, fetchTvShows } from "../lib/api";
 import "../css/home.css";
 
+import Header from "../components/Header";
+
 const FALLBACK_BANNERS = [
   {
     id: "fallback-1",
@@ -27,12 +29,15 @@ const FALLBACK_BANNERS = [
 interface BannerProps {
   onDown: () => void;
   onUp: () => void;
+  containerRef: React.RefObject<HTMLDivElement>;
 }
 
-const Banner: React.FC<BannerProps> = ({ onDown, onUp }) => {
+const Banner: React.FC<BannerProps> = ({ onDown, onUp, containerRef }) => {
   const history = useHistory();
   const [slides, setSlides] = useState(FALLBACK_BANNERS);
   const [active, setActive] = useState(0);
+
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   const { isActive, activate } = useSectionFocus("banner", {
     itemCount: 1,
@@ -54,6 +59,11 @@ const Banner: React.FC<BannerProps> = ({ onDown, onUp }) => {
     return () => clearInterval(t);
   }, [slides.length]);
 
+  // Scroll container to top when banner is focused (coming from below)
+  useEffect(() => {
+    if (isActive) containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [isActive]);
+
   // Left/Right for carousel when banner is active
   useEffect(() => {
     if (!isActive) return;
@@ -74,9 +84,11 @@ const Banner: React.FC<BannerProps> = ({ onDown, onUp }) => {
 
   return (
     <div
+      ref={bannerRef}
       className={`home-banner ${isActive ? "section-focused" : ""}`}
       onClick={() => activate()}
     >
+      <div className="banner-inner">
       <img src={slide.image} className="banner-image" alt={slide.title} />
       <div className="banner-gradient" />
 
@@ -104,6 +116,7 @@ const Banner: React.FC<BannerProps> = ({ onDown, onUp }) => {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 };
@@ -180,6 +193,7 @@ const SECTIONS = ["banner", "row-trending", "row-series"];
 const HomePageInner: React.FC = () => {
   const history = useHistory();
   const { setFocusedSection } = useFocus();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [movies, setMovies] = useState(MOVIES.slice(0, 8));
   const [shows, setShows] = useState(SERIES.slice(0, 8));
 
@@ -208,8 +222,9 @@ const HomePageInner: React.FC = () => {
   }, [setFocusedSection]);
 
   return (
-    <div className="home-container">
-      <Banner onDown={() => goTo("row-trending")} onUp={goToHeader} />
+    <div className="home-container tv-scroll-hide" ref={containerRef} style={{ height: '100vh', overflowY: 'auto' }}>
+      <Header />
+      <Banner onDown={() => goTo("row-trending")} onUp={goToHeader} containerRef={containerRef} />
 
       <ContentRow
         sectionId="row-trending"

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
-import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import { FocusProvider, useFocus, useSectionFocus } from '../lib/focus/FocusContext';
 import Header from '../components/Header';
 import '../css/categories.css';
 
@@ -22,12 +22,21 @@ const CAT_ITEMS = [
 
 const CategoriesInner: React.FC = () => {
   const history = useHistory();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { setFocusedSection } = useFocus();
 
   const { isActive, activeIndex, activate, setRef } = useSectionFocus('categories-grid', {
     itemCount: CAT_ITEMS.length,
+    isVertical: true,
     onEnter: (i) => history.push(`/category/${encodeURIComponent(CAT_ITEMS[i].name.toLowerCase())}`),
-    // Grid: left/right handled by default; up/down move by COLS
   });
+
+  useEffect(() => {
+    const onContentFocus = () => activate(0);
+    window.addEventListener('content-focus', onContentFocus);
+    return () => window.removeEventListener('content-focus', onContentFocus);
+  }, []);
 
   // Override: grid needs up/down to move by COLS rows
   useEffect(() => {
@@ -41,8 +50,13 @@ const CategoriesInner: React.FC = () => {
         if (activeIndex % COLS < COLS - 1 && activeIndex + 1 < CAT_ITEMS.length) activate(activeIndex + 1);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (activeIndex - COLS >= 0) activate(activeIndex - COLS);
-        // at top edge: do nothing (release would go to header)
+        if (activeIndex - COLS >= 0) {
+          activate(activeIndex - COLS);
+        } else {
+          containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+          setFocusedSection(null);
+          window.dispatchEvent(new CustomEvent('header-focus'));
+        }
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (activeIndex + COLS < CAT_ITEMS.length) activate(activeIndex + COLS);
@@ -58,7 +72,7 @@ const CategoriesInner: React.FC = () => {
   useEffect(() => { activate(0); }, []);
 
   return (
-    <div className="categories-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }} onClick={() => activate(activeIndex)}>
+    <div className="categories-container tv-scroll-hide" ref={containerRef} style={{ height: '100vh', overflowY: 'auto' }} onClick={() => activate(activeIndex)}>
       <Header />
       <div className="categories-grid">
         {CAT_ITEMS.map((cat, i) => (

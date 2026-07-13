@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import { FocusProvider, useFocus, useSectionFocus } from '../lib/focus/FocusContext';
 import Header from '../components/Header';
 import { SERIES } from '../constants';
 import { Movie } from '../types/common-interface';
@@ -22,9 +22,15 @@ const ShowsInner: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const { setFocusedSection } = useFocus();
+
   const { isActive: filtersActive, activeIndex: filterIndex, activate: activateFilters, setRef: setFilterRef } = useSectionFocus('shows-filters', {
     itemCount: FILTERS.length,
     onDown: () => activateGrid(0),
+    onUp: () => {
+      setFocusedSection(null);
+      window.dispatchEvent(new CustomEvent('header-focus'));
+    },
   });
 
   const { isActive: gridActive, activeIndex: gridIndex, activate: activateGrid, setRef: setGridRef } = useSectionFocus('shows-grid', {

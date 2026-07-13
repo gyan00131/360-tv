@@ -4,7 +4,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 112px 96px 96px;
+  padding: 8px 96px 96px;
   background: linear-gradient(135deg, var(--color-tv-bg) 0%, var(--color-tv-surface) 100%);
   color: white;
 }

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { FocusProvider, useSectionFocus } from '../lib/focus/FocusContext';
+import { FocusProvider, useFocus, useSectionFocus } from '../lib/focus/FocusContext';
 import Header from '../components/Header';
 import { Movie } from '../types/common-interface';
 import { fetchMovies } from '../lib/api';
@@ -21,10 +21,20 @@ const MoviesInner: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const { setFocusedSection } = useFocus();
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const { isActive, activeIndex, activate, setRef } = useSectionFocus('movies-grid', {
     itemCount: movies.length,
+    isVertical: true,
     onEnter: (i) => history.push(`/detail/${movies[i].id}`),
   });
+
+  useEffect(() => {
+    const onContentFocus = () => activate(0);
+    window.addEventListener('content-focus', onContentFocus);
+    return () => window.removeEventListener('content-focus', onContentFocus);
+  }, []);
 
   useEffect(() => {
     if (!isActive) return;
@@ -37,7 +47,13 @@ const MoviesInner: React.FC = () => {
         if (activeIndex % COLS < COLS - 1 && activeIndex + 1 < movies.length) activate(activeIndex + 1);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (activeIndex - COLS >= 0) activate(activeIndex - COLS);
+        if (activeIndex - COLS >= 0) {
+          activate(activeIndex - COLS);
+        } else {
+          containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+          setFocusedSection(null);
+          window.dispatchEvent(new CustomEvent('header-focus'));
+        }
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (activeIndex + COLS < movies.length) activate(activeIndex + COLS);
@@ -50,10 +66,10 @@ const MoviesInner: React.FC = () => {
     return () => window.removeEventListener('keydown', handle);
   }, [isActive, activeIndex, activate, movies, history]);
 
-  useEffect(() => { activate(0); }, [movies]);
+  useEffect(() => { activate(0); }, []);
 
   return (
-    <div className="shows-container tv-scroll-hide" style={{ height: '100vh', overflowY: 'auto' }}>
+    <div className="shows-container tv-scroll-hide" ref={containerRef} style={{ height: '100vh', overflowY: 'auto' }}>
       <Header />
       <div className="shows-header">
         <h2 className="shows-title">Movies</h2>

@@ -76,9 +76,9 @@ const Header: React.FC = () => {
 
   return (
     <header className="nav-header">
-      <div onClick={() => handleNavigation('profile')} className="nav-avatar">
+      {/* <div onClick={() => handleNavigation('profile')} className="nav-avatar">
         <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&q=80" alt="Profile" />
-      </div>
+      </div> */}
 
       <nav className="nav-tabs">
         {['Home', 'Categories', 'Movies', 'Shows', 'Favorites', ''].map((label, i) => (

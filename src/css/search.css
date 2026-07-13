@@ -4,7 +4,7 @@
   flex: 1;
   display: flex;
   gap: 48px;
-  padding: 112px 48px 48px;
+  padding: 8px 48px 48px;
   background-color: var(--color-tv-bg);
   color: white;
 }
@@ -63,8 +63,7 @@
 .keyboard-key.focused {
   background-color: var(--color-tv-accent);
   color: white;
-  transform: scale(1.1);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.25), 0 10px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.25);
 }
 
 .keyboard-key.wide {
@@ -107,7 +106,6 @@
 .result-card.focused {
   border-color: var(--color-tv-accent);
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
-  transform: translateY(-2px);
 }
 
 .result-thumb {
